@@ -1,0 +1,187 @@
+unit Unit1;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, Buttons, StdCtrls, ExtCtrls ;
+
+
+type
+  TForm1 = class(TForm)
+    Button1: TButton;
+    Button2: TButton;
+    Button3: TButton;
+    Button4: TButton;
+    Button5: TButton;
+    Button6: TButton;
+    Button7: TButton;
+    Button8: TButton;
+    Button9: TButton;
+    Button10: TButton;
+  procedure ControlMouseDown(Sender: TObject;Button: TMouseButton;Shift: TShiftState;X, Y: Integer);
+procedure ControlMouseMove(Sender: TObject;Shift: TShiftState;X, Y: Integer);
+procedure ControlMouseUp(Sender: TObject;Button: TMouseButton;Shift: TShiftState;X, Y: Integer);
+    procedure FormCreate(Sender: TObject);
+
+private
+inReposition : boolean;
+oldPos : TPoint;
+
+private
+
+
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+
+  end;
+
+var
+  Form1: TForm1;
+  merkez:Array[0..1000] of Array[0..1] of Integer;
+  eski_loc:Array[0..1000] of Array[0..1] of Integer;
+  tara_merkez:Array[0..1000] of Array[0..1] of Integer;
+  hesap_merkez:Array[0..1000] of Array[0..1] of Integer;
+  i,x_git,y_git,x_eski,y_eski:integer;
+
+
+implementation
+
+uses Types, Math;
+
+{$R *.dfm}
+
+
+Function hesapla(x1,y1: Integer) : Integer;
+var
+  i,j,k,sur_merkez_x,sur_merkez_y,sec:integer;
+  kont,kont2:Boolean;
+begin
+kont:=false;
+kont2:=false;
+for i:=0 to Form1.ComponentCount-1 do
+  if (Form1.Components[i] is TButton) then
+  begin
+    tara_merkez[i,0]:=TLabel(Form1.Components[i]).Left+ hesap_merkez[i,0];
+    tara_merkez[i,1]:=TLabel(Form1.Components[i]).Top+  hesap_merkez[i,1];
+  end;
+
+for i:=0 to Form1.ComponentCount-1 do
+  if (Form1.Components[i] is TButton) then
+    if ((tara_merkez[i,0])<>(merkez[i,0])) and ((tara_merkez[i,0])<>(merkez[i,0])) then
+     begin
+      sec:=i;
+      kont2:=true;
+     end;
+if kont2 then
+begin
+  for i:=0 to Form1.ComponentCount do
+  begin
+    if ((abs((tara_merkez[i][0])-(tara_merkez[sec][0])))< hesap_merkez[i,0]) and ((abs((merkez[i][1])-(tara_merkez[sec][1])))< hesap_merkez[i,1]) then
+    begin
+      if i<>sec then
+        kont:=true
+    end;
+  end;
+end;
+
+if kont then
+  ShowMessage(IntToStr(sec+1)+'. buttonu '+IntToStr(i+1)+'. butonun üzerine koydunuz');
+
+
+end;
+
+
+procedure TForm1.FormCreate(Sender: TObject);
+var
+  left_1,top_1:Integer;
+begin
+For i:= 0 to Form1.ComponentCount -1 do
+  if (Form1.Components[i] is TButton) then
+  begin
+    TButton(Form1.Components[i]).Caption :=IntToStr(i+1);
+    TButton(Form1.Components[i]).OnMouseDown := ControlMouseDown;
+    TButton(Form1.Components[i]).OnMouseMove := ControlMouseMove;
+    TButton(Form1.Components[i]).OnMouseUp := ControlMouseUp;
+    hesap_merkez[i,0]:=Ceil(TButton(Form1.Components[i]).Width/2);
+    hesap_merkez[i,1]:=Ceil(TButton(Form1.Components[i]).Height/2);
+    merkez[i,0]:=TButton(Form1.Components[i]).Left+hesap_merkez[i,0]; {buton eni yarýsý}
+    merkez[i,1]:=TButton(Form1.Components[i]).Top+hesap_merkez[i,1];{buton boyu yarýsý}
+    eski_loc[i,0]:=TButton(Form1.Components[i]).Left;
+    eski_loc[i,1]:=TButton(Form1.Components[i]).Top;
+  end;
+end; (*FormCreate*)
+
+procedure TForm1.ControlMouseDown(Sender: TObject;Button: TMouseButton;Shift: TShiftState;
+X, Y: Integer);
+begin
+//if (chkPositionRunTime.Checked) AND (Sender is TWinControl) then
+//begin
+inReposition:=True;
+SetCapture(TWinControl(Sender).Handle);
+GetCursorPos(oldPos);
+
+//end;
+end; (*ControlMouseDown*)
+
+
+procedure TForm1.ControlMouseMove(Sender: TObject;Shift: TShiftState;
+X, Y: Integer);
+const
+minWidth = 20;
+minHeight = 20;
+var
+newPos: TPoint;
+frmPoint : TPoint;
+begin
+if inReposition then
+begin
+with TWinControl(Sender) do
+begin
+GetCursorPos(newPos);
+if ssShift in Shift then
+begin //resize
+Screen.Cursor := crSizeNWSE;
+frmPoint := ScreenToClient(Mouse.CursorPos);
+if frmPoint.X > minWidth then
+Width := frmPoint.X;
+if frmPoint.Y > minHeight then
+Height := frmPoint.Y;
+end
+else //move
+begin
+Screen.Cursor := crSize;
+Left := Left - oldPos.X + newPos.X;
+Top := Top - oldPos.Y + newPos.Y;
+oldPos := newPos;
+end;
+end;
+end;
+
+end; (*ControlMouseMove*)
+
+procedure TForm1.ControlMouseUp(Sender: TObject;Button: TMouseButton;
+Shift: TShiftState; X, Y: Integer);
+begin
+if inReposition then
+begin
+Screen.Cursor := crDefault;
+ReleaseCapture;
+inReposition := False;
+end;
+
+hesapla(x_git,y_git);
+
+For i:=0 to Form1.ComponentCount -1 do
+  if (Form1.Components[i] is TButton) then
+  begin
+  TLabel(Form1.Components[i]).Left:=eski_loc[i,0];
+  TLabel(Form1.Components[i]).Top:=eski_loc[i,1];
+  end;
+
+
+end; (*ControlMouseUp*)
+
+end.

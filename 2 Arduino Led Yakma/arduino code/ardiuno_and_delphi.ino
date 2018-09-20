@@ -1,0 +1,83 @@
+//#include
+
+// Initialize the library with its indicated pins.
+// RS, RW, Enable, D4, D5, D6, D7.
+// LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
+
+// Pin 10 para saber que es luz de fondo.
+//const byte LuzFondo = 10;
+int led = 12;   // Declare the variable pin of the Led.
+int potPin=A0;
+char caracter;
+String comando;
+
+void setup()
+{
+  pinMode(led, OUTPUT);  // Initialize the LED pin as output:
+  Serial.begin(9600);     // Port serial 115200 baud.
+  /*lcd.begin(16, 2);         // Screen Format.
+  lcd.clear();      // Deletes the screen and its upper left position.
+  lcd.print("    Arduino     ");*/
+  //delay(1000);
+}
+
+void loop()
+{
+  /*
+  digitalWrite(led,HIGH);
+  delay(500);
+  digitalWrite(led,LOW);
+  delay(500);
+  digitalWrite(led,HIGH);
+  delay(500);
+  digitalWrite(led,LOW);
+  delay(500);
+  digitalWrite(led,HIGH);
+  delay(500);
+  digitalWrite(led,LOW);
+  */
+  /*
+     I'm reading character by character what is received by the serial channel
+     (While some data arrives there), and I am linking them one after another
+     In a chain. In practice, if we use the "Serial monitor" the while loop
+     Will end when we press Enter. The delay is convenient not to saturate the
+     Channel and that the concatenation is done in an orderly fashion.
+  */
+  while (Serial.available() > 0)
+  {
+    caracter = Serial.read();
+    comando.concat(caracter);
+    delay(10);
+  }
+
+  /*
+     Once I already have the chain "finished", I check its value and make it
+     The Arduino board reacts accordingly. Here we could do what
+     That we would like: if the command is "such", lights a Led, if it is,
+     Move a motor ... and so on.
+  */
+
+  // If the characters are received and true.
+  if (comando.equals("Luz_ON") == true)
+  {
+    digitalWrite(led, HIGH); // Turn on the Led 13.
+    Serial.write("ON - Led encendido.");    // Send this message to the PC.
+    /*lcd.setCursor(0, 1);
+    lcd.print("Luz ON.         "); // Show on LCD.*/
+  }
+
+
+  if (comando.equals("Luz_OFF") == true)
+  {
+    digitalWrite(led, LOW); // Turn off the Led 13.
+    Serial.write("OFF - Led apagado. ");  // Send this message to the PC.
+    /*lcd.setCursor(0, 1);
+    lcd.print("Luz OFF.        "); // Show on LCD.*,7*/
+  }
+  int deger = analogRead(potPin);
+  Serial.println(deger);
+  delay(100);
+  // We cleaned the chain to receive the next command again.
+  comando = "";
+}
+

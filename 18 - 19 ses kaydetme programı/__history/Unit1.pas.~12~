@@ -1,0 +1,101 @@
+unit Unit1;
+
+interface
+
+uses
+  System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
+  FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs, FMX.Media,
+  FMX.Controls.Presentation, FMX.StdCtrls, FMX.Objects, FMX.Ani, FMX.Layouts;
+
+type
+  TForm1 = class(TForm)
+    Label1: TLabel;
+    procedure FormCreate(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+  private
+    procedure SetArsSesKaydiOlustur;
+    function GetArsHedef: String;
+    { Private declarations }
+  public
+    Mikrofon: TAudioCaptureDevice;
+    { Public declarations }
+  end;
+
+var
+  Form1: TForm1;
+
+implementation
+
+{$R *.fmx}
+
+Uses System.IOUtils;
+
+function TForm1.GetArsHedef(): String;
+const
+  DosyaAdi: String = 'Gorusme.mp3';
+begin
+{$IFDEF ANDROID}          // Dahili Document klasörü
+  Result := TPath.Combine(TPath.GetSharedDocumentsPath, DosyaAdi);
+{$ELSE}
+{$IFDEF IOS}
+  Result := TPath.GetHomePath + '/Documents/' + DosyaAdi;
+  showmessage(TPath.GetHomePath);
+{$ELSE}
+  Result := TPath.Combine(TPath.GetTempPath, DosyaAdi);
+{$ENDIF}
+{$ENDIF}
+end;
+
+procedure TForm1.SetArsSesKaydiOlustur();
+begin
+  if Assigned(Mikrofon) then
+  begin
+    Mikrofon.FileName := GetArsHedef();
+    try
+      Mikrofon.StartCapture; // Ses kaydýný baþlat
+    except begin
+      application.Title := 'Kayýt Cihazý Desteklenmiyor veya Cihaza Eriþim Ýzniniz Yok';
+      ShowMessage('Kayýt Cihazý Desteklenmiyor veya Cihaza Eriþim Ýzniniz Yok');
+    end;
+    end;
+  end
+  else
+  begin
+    application.Title := 'Kayýt cihazý yok';
+    ShowMessage('Kayýt cihazý yok');
+  end;
+end;
+
+procedure TForm1.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+if (Mikrofon.State = TCaptureDeviceState.Stopped) then
+  begin
+    application.Title := GetArsHedef();
+  end;
+end;
+
+procedure TForm1.FormCreate(Sender: TObject);
+begin
+  // Varsayýlan kayýt aracýnýn (mikrofon) seçimi
+  Mikrofon := TCaptureDeviceManager.Current.DefaultAudioCaptureDevice;
+{$IF DEFINED(ANDROID)}
+{$ENDIF}
+
+  if Assigned(Mikrofon) then
+  begin
+    if (Mikrofon.State = TCaptureDeviceState.Stopped) then
+    begin
+      application.Title := 'Kayýt Yapýlýyor';
+      SetArsSesKaydiOlustur();
+
+    end
+    else
+    begin
+      application.Title := 'Kayýt Yok';
+      Mikrofon.StopCapture; // Ses kaydýný durdur
+    end;
+  end;
+
+end;
+
+end.

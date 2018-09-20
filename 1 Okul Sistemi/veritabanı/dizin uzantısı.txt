@@ -1,0 +1,1 @@
+Program Files\Microsoft SQL Server\MSSQL14.DENIZ\MSSQL\DATA
